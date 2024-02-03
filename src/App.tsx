@@ -7,7 +7,8 @@ function App() {
       <EventCalendar 
        events={[
         { date: addDays(new Date(), 6), title: "Post video" },
-        { date: addDays(new Date(), 1), title: "Edit video" },
+        { date: subDays(new Date(), 1), title: "Edit video" },
+        { date: addDays(new Date(), 3), title: "Code" },
         { date: addDays(new Date(), 3), title: "Code" },
       ]}
     />

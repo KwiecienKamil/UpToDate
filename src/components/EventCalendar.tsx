@@ -1,13 +1,19 @@
 import clsx from "clsx";
 import {
+  add,
     eachDayOfInterval,
     endOfMonth,
+    endOfWeek,
     format,
+    getDate,
     getDay,
+    isEqual,
     isToday,
+    parse,
     startOfMonth,
+    startOfToday,
   } from "date-fns";
-  import { useMemo } from "react";
+  import { useMemo, useState } from "react";
   
   const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   
@@ -21,13 +27,17 @@ import {
   }
   
   const EventCalendar = ({ events }: EventCalendarProps) => {
+    let today = startOfToday()
+    let [selectedDay, setSelectedDay] = useState(today);
+    let [currentMonth, setCurrentMonth] = useState(format(today, 'MMM-yyyy'))
+    let firstDayCurrentMonth = parse(currentMonth, "MMM-yyyy", new Date())
     const currentDate = new Date();
     const firstDayOfMonth = startOfMonth(currentDate);
     const lastDayOfMonth = endOfMonth(currentDate);
   
     const daysInMonth = eachDayOfInterval({
-      start: firstDayOfMonth,
-      end: lastDayOfMonth,
+      start: firstDayCurrentMonth,
+      end: endOfWeek(endOfMonth(firstDayCurrentMonth)),
     });
   
     const startingDayIndex = getDay(firstDayOfMonth);
@@ -42,13 +52,19 @@ import {
         return acc;
       }, {});
     }, [events]);
+
+    const nextMonth = () => {
+      let firstDayNextMonth = add(firstDayCurrentMonth, {months: 1})
+      setCurrentMonth(format(firstDayNextMonth, 'MMM-yyyy'))
+    }
   
     return (
       <div className="container mx-auto p-4">
         <div className="mb-4">
-          <h2 className="text-center">{format(currentDate, "MMMM yyyy")}</h2>
+          <button onClick={nextMonth}>Next</button>
+          <h2 className="text-center">{format(firstDayCurrentMonth, "MMMM yyyy")}</h2>
         </div>
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 col-start gap-2">
           {WEEKDAYS.map((day) => {
             return (
               <div key={day} className="font-bold text-center">
@@ -60,7 +76,9 @@ import {
             return (
               <div
                 key={`empty-${index}`}
-                className="border rounded-md p-2 text-center"
+                className={clsx("border rounded-md p-2 text-center", {
+                  colStartClasses : index === 0
+                })}
               />
             );
           })}
@@ -70,9 +88,11 @@ import {
             return (
               <div
                 key={index}
-                className={clsx("border rounded-md p-2 text-center", {
-                  "bg-gray-200": isToday(day),
+                onClick={() => setSelectedDay(day)}
+                className={clsx("border rounded-md p-2 text-center hover:bg-gray-200 cursor-pointer", {
+                  "bg-slate-400": isToday(day),
                   "text-gray-900": isToday(day),
+                  "bg-green-500" : isEqual(day, selectedDay)
                 })}
               >
                 {format(day, "d")}
@@ -80,7 +100,7 @@ import {
                   return (
                     <div
                       key={event.title}
-                      className="bg-green-500 rounded-md text-gray-900"
+                      className="bg-green-500 rounded-md text-gray-900 mt-1"
                     >
                       {event.title}
                     </div>
@@ -93,5 +113,16 @@ import {
       </div>
     );
   };
+
+  let colStartClasses = [
+    "",
+    "col-start-1",
+    "col-start-2",
+    "col-start-3",
+    "col-start-4",
+    "col-start-5",
+    "col-start-6",
+    "col-start-7",
+  ]
   
   export default EventCalendar;
